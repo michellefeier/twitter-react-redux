@@ -6,19 +6,19 @@ class TweetComponent extends React.Component {
 
 		return (
 			<div className="tweet-container">
-				<img src={data.authorPicture} alt="" className="user-picture"/>
+				<img src={data.user.profile_image_url} alt="" className="user-picture"/>
 				<div className="tweet-content">
 					<p>{data.text}</p>
 				</div>
 				<div className="tweet-info">
 					<span className="tweet-author">
-						{data.authorName}
+						{data.user.name}
 					</span>
 					<span className="tweet-username">
-						{data.authorUsername}
+						{data.user.screen_name}
 					</span>
 					<span className="tweet-datetime">
-						{data.date.toLocaleString()}
+						{new Date(data.created_at).toLocaleString()}
 					</span>
 				</div>
 			</div>

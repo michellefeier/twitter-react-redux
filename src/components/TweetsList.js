@@ -1,5 +1,8 @@
 import React from 'react';
 import TweetComponent from './TweetComponent';
+import io from 'socket.io-client';
+
+import { connect } from "react-redux";
 
 const TWEETS = [
 	{
@@ -46,45 +49,50 @@ const TWEETS = [
 	}
 ];
 
-class TweetsList extends React.Component {
+const mapStateToProps = state => {
+	return { data: state.tweets };
+};
+
+const mapDispatchToProps = dispatch => {
+	return {
+		onNewTweet: data => dispatch({ type: 'ADD', data})
+	};
+};
+
+  
+class ConnectedTweetsList extends React.Component {
 	constructor (props) {
 		super(props);
-		this.state = { username: 'SpotifyBR', tweets: [] };
+		let socket = io.connect('ws://localhost:3001');
+		this.state = {socket};
+
+		this.fetchRecents();
 	}
 
-	handleChange(event) {
-		this.setState({ username: event.target.value });
-	}
-
-	handleKeyPress(event) {
-		if (event.key === 'Enter') {
-		  	this.search();
-		}
+	fetchRecents() {
+		this.state.socket.on('tweet', (data) => {
+			console.log('Received new tweet data:');
+			this.props.onNewTweet(data);
+		});
 	}
 
 	componentDidMount() {
 		this.setState({tweets: TWEETS});
 	}
 
-	search() {
-
-	}
-
 	render() {
-		let tweetsCards = this.state.tweets.map((tweet, index) => 
-			{return (<TweetComponent key={index} data={tweet} />);}
-		)
-
 		return (
 			<div className="container">
-				<div className="searchbox">
-					<input type="text" id="username" value={this.state.username} onChange={this.handleChange} onKeyPress={this.handleKeyPress} />
-				</div>
 				<div className="tweets-list">
-					{ this.state.tweets.length > 0 && tweetsCards }
+					{ this.props.data && this.props.data.tweets && this.props.data.tweets.map((tweet, index) => 
+						<TweetComponent key={index} data={tweet} />
+					)}
 				</div>
 			</div>
 		)
 	}
 }
+
+const TweetsList = connect(mapStateToProps, mapDispatchToProps) (ConnectedTweetsList);
+
 export default TweetsList;
