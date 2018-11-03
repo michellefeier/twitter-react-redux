@@ -1,53 +1,6 @@
 import React from 'react';
 import TweetComponent from './TweetComponent';
-import io from 'socket.io-client';
-
 import { connect } from "react-redux";
-
-const TWEETS = [
-	{
-		authorName: 'Fulaninho',
-		authorUsername: 'fulaninho',
-		authorPicture: 'https://afala.com.br/wp-content/uploads/grumpy-cat-e1506453417266.jpg',
-		date: new Date(),
-		text: 'A luta para ser ouvida não é algo do nosso tempo.\nSpotify apresenta Escuta as Minas'
-	},
-	{
-		authorName: 'Fulaninho',
-		authorUsername: 'fulaninho',
-		authorPicture: 'https://afala.com.br/wp-content/uploads/grumpy-cat-e1506453417266.jpg',
-		date: new Date(),
-		text: 'A luta para ser ouvida não é algo do nosso tempo.\nSpotify apresenta Escuta as Minas'
-	},
-	{
-		authorName: 'Fulaninho',
-		authorUsername: 'fulaninho',
-		authorPicture: 'https://afala.com.br/wp-content/uploads/grumpy-cat-e1506453417266.jpg',
-		date: new Date(),
-		text: 'A luta para ser ouvida não é algo do nosso tempo.\nSpotify apresenta Escuta as Minas'
-	},
-	{
-		authorName: 'Fulaninho',
-		authorUsername: 'fulaninho',
-		authorPicture: 'https://afala.com.br/wp-content/uploads/grumpy-cat-e1506453417266.jpg',
-		date: new Date(),
-		text: 'A luta para ser ouvida não é algo do nosso tempo.\nSpotify apresenta Escuta as Minas'
-	},
-	{
-		authorName: 'Fulaninho',
-		authorUsername: 'fulaninho',
-		authorPicture: 'https://afala.com.br/wp-content/uploads/grumpy-cat-e1506453417266.jpg',
-		date: new Date(),
-		text: 'A luta para ser ouvida não é algo do nosso tempo.\nSpotify apresenta Escuta as Minas'
-	},
-	{
-		authorName: 'Fulaninho',
-		authorUsername: 'fulaninho',
-		authorPicture: 'https://afala.com.br/wp-content/uploads/grumpy-cat-e1506453417266.jpg',
-		date: new Date(),
-		text: 'A luta para ser ouvida não é algo do nosso tempo.\nSpotify apresenta Escuta as Minas'
-	}
-];
 
 const mapStateToProps = state => {
 	return { data: state.tweets };
@@ -55,7 +8,9 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
 	return {
-		onNewTweet: data => dispatch({ type: 'ADD', data})
+		onNewTweet: data => dispatch({ type: 'ADD_TWEET', data}),
+		onSearch: data => dispatch({ type: 'OVERWRITE_TWEETS', data }),
+		onUpdateScreenName: data => dispatch({ type: 'UPDATE_SCREEN_NAME', data })
 	};
 };
 
@@ -63,29 +18,56 @@ const mapDispatchToProps = dispatch => {
 class ConnectedTweetsList extends React.Component {
 	constructor (props) {
 		super(props);
-		let socket = io.connect('ws://localhost:3001');
-		this.state = {socket};
 
-		this.fetchRecents();
+		this.search();
+
+		this.handleChange = this.handleChange.bind(this);
+		this.handleKeyPress = this.handleKeyPress.bind(this);
+		this.search = this.search.bind(this);
 	}
 
-	fetchRecents() {
-		this.state.socket.on('tweet', (data) => {
-			console.log('Received new tweet data:');
-			this.props.onNewTweet(data);
-		});
+	handleChange(e) {
+		this.props.onUpdateScreenName(e.target.value);
 	}
 
-	componentDidMount() {
-		this.setState({tweets: TWEETS});
+	handleKeyPress(e) {
+		if (e.key === 'Enter')
+			this.search();
+	}
+
+	search() {
+		fetch(
+			'/api/search?screen_name=' + this.props.data.screenName,
+			{ headers: { 'Content-Type': 'application/json' }
+		})
+		.then(response => response.json())
+		.then(result => {
+			if (result.success)
+				this.props.onSearch(result.data);
+			else {
+				this.props.onSearch([]);
+				console.error(result.message);
+			}
+		})
+		.catch(error => console.error(error));
 	}
 
 	render() {
 		return (
 			<div className="container">
+				<div className="searchbox">
+					<input type="text" id="username" value={this.props.data.screenName} onChange={this.handleChange} onKeyPress={this.handleKeyPress} />
+					<button onClick={this.search} id="btn-search"> Pesquisar </button>
+		 		</div>
 				<div className="tweets-list">
-					{ this.props.data && this.props.data.tweets && this.props.data.tweets.map((tweet, index) => 
-						<TweetComponent key={index} data={tweet} />
+					{ (this.props.data && this.props.data.tweets && this.props.data.tweets.length > 0) && (
+						this.props.data.tweets.map((tweet, index) => 
+							<TweetComponent key={index} data={tweet} />
+						)
+					)}
+
+					{ (!this.props.data.tweets || this.props.data.tweets.length) == 0 && (
+						<p id="no-tweets-message"> usuário não encontrado, privado ou sem tweets :( </p>
 					)}
 				</div>
 			</div>
