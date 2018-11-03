@@ -2,9 +2,10 @@ const Twitter = require('twitter');
 
 module.exports = (app, io) => {
 	const twitterClient = new Twitter({
-		consumer_key: 'TBLoGg5WR4Zd41Plm5msQQv8Y',
-		consumer_secret: 'Z07qp2H8aFtJcKEzz1T1hNPvXlI0I2JhNTqSQJoHaMyAlRMpi6',
-		bearer_token: 'AAAAAAAAAAAAAAAAAAAAAKMF8wAAAAAA9CyLh%2F10rh4uO51vmp9047wFH%2Bs%3DMyhM5NValCWAug8rARoRj1h2mWZuPvLdMHtjajjIYEs91elh9X'
+		consumer_key: '',
+		consumer_secret: '',
+		access_token_key: '',
+		access_token_secret: '',
 	});
 
 	app.get('/api/search', (req, res) => {
